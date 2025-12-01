@@ -1,4 +1,4 @@
-#include "gobang.h"
+#include "linked_list.h"
 
 struct Node *CreateList() {
     return NULL;
