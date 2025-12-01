@@ -4,15 +4,38 @@
 
 #ifndef C_GOBANG_GOBANG_H
 #define C_GOBANG_GOBANG_H
-#include <stdio.h>
-#include <stdlib.h>
+#include "linked_list.h"
 
 #define MAXBRANCHES 10
-#define MAXSHAPES 20
+#define MAXDEPTH 6
+#define BOARD_SIZE 15
+#define COMPUTER 1
 
-typedef enum {neighbor11x=0,neighbor110,jump1010,jump101x,three111x,three1110,threejump11010,threejump1101x,threejump10110,threejump1011x,four1111x,four11110,five}Shape;
+#define SCORE_SINGLE 1
+#define SCORE_NEIGHBOR_BLOCKED 2
+#define SCORE_NEIGHBOR_FREE 10
+#define SCORE_THREE_BLOCKED 100
+#define SCORE_THREE_FREE 1000
+#define SCORE_FOUR_BLOCKED 1800
+#define SCORE_FOUR_FREE 10000
+#define SCORE_WIN 100000
+
+#define SCORE_LOSE -1000000
+
+
+typedef enum {null =0,single,neighbor0110,neighbor011x,neighborx110,neighbor_dead,jump01010,jump0101x,jumpx1010,jump_dead,three01110,three0111x,threex1110,three_dead,threejump011010,threejump01101x,threejumpx11010,threejump1101dead,threejump010110,threejump01011x,threejumpx10110,threejump1011dead,four011110,four01111x,fourx11110,four_dead,fourjump11101,fourjump10111,fourjump11011,five}Ownerless_Shape;
 //typedef enum {neighbor11=1,three111x=2,three1110=10,four1111x=15,four11110=100,five=200}ShapeValue;
-typedef enum {machine=1,human=-1}Player;
+
+
+typedef struct
+{
+    bool owner            :1;
+    Ownerless_Shape shape :7;//删
+    bool isblocked_begin  :1;
+    bool isblocked_end    :1;
+    char length0          :5;
+    char length1          :8;
+}Shape;
 typedef struct {
     char X;
     char Y;
@@ -22,22 +45,20 @@ typedef struct {
     char dirY;
 }Direction;
 
-Shape BoardState[15][15][4];
+const short value_free[]={};
+const short value_blocked[]={};
 
-struct Node{
-    int data;
-    struct Node *next;
-};
-struct Node *CreateList();
-int insert(struct Node **list, int name);
-void append(struct Node *list, int data);
-int del(struct Node **list, int index);
-//int find(struct Node *list, int data, int start);
+char  Board     [15][15]   ;
+Shape BoardState[15][15][4];
+int HeatMap   [15][15]   ;
+int   Score;
+Point FinalChoice;
 
 Point *generate_choices();
-void next_state(Point point);
-void de_state(Shape** state,Point point);
+void next_state(Point point,bool isMachine);
+void de_state(Point point);//考虑用栈
+void change(Point point,char dir,char player);
 
-void search(Point point ,int length,Player player);//每层搜索直接编辑BoardState,出口前回退状态
-
+int search(Point point, int depth, bool isMachine, int alpha_beta);//每层搜索直接编辑BoardState,出口前回退状态
+int get_value();
 #endif //C_GOBANG_GOBANG_H

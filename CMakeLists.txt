@@ -12,4 +12,5 @@ add_executable(${PROJECT_NAME}
         main.cpp
         graphic_test.cpp)
 
-add_executable(graphic graphic_test.cpp)
+add_executable(graphic graphic_test.cpp
+        linked_list.h)
