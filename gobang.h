@@ -23,9 +23,14 @@
 #define SCORE_LOSE -1000000
 
 
-typedef enum {null =0,single,neighbor0110,neighbor011x,neighborx110,neighbor_dead,jump01010,jump0101x,jumpx1010,jump_dead,three01110,three0111x,threex1110,three_dead,threejump011010,threejump01101x,threejumpx11010,threejump1101dead,threejump010110,threejump01011x,threejumpx10110,threejump1011dead,four011110,four01111x,fourx11110,four_dead,fourjump11101,fourjump10111,fourjump11011,five}Ownerless_Shape;
+typedef enum
+{
+    null = 0, single, neighbor0110, neighbor011x, neighborx110, neighbor_dead, jump01010, jump0101x, jumpx1010,
+    jump_dead, three01110, three0111x, threex1110, three_dead, threejump011010, threejump01101x, threejumpx11010,
+    threejump1101dead, threejump010110, threejump01011x, threejumpx10110, threejump1011dead, four011110, four01111x,
+    fourx11110, four_dead, fourjump11101, fourjump10111, fourjump11011, five
+} Ownerless_Shape;
 //typedef enum {neighbor11=1,three111x=2,three1110=10,four1111x=15,four11110=100,five=200}ShapeValue;
-
 
 typedef struct
 {
@@ -45,8 +50,47 @@ typedef struct {
     char dirY;
 }Direction;
 
-const short value_free[]={};
-const short value_blocked[]={};
+const short value_free[]={1,10,1000,10000};
+const short value_blocked[]={1,2,200,2000};
+
+typedef enum
+{
+    end_of_change = 0,
+    shape_create,
+    shape_destroy,
+    score_change,
+    heat_change,
+}ChangeMode;
+typedef struct
+{
+    ChangeMode mode;
+    union
+    {
+        struct
+        {
+            Shape shape;
+            Point position;
+            char direction;
+        }shapeData;
+
+        struct
+        {
+            Point position;
+            int score;
+        }heat;
+        int score;
+    }data;
+}ChangeLog;
+
+#define STACK_SIZE 200
+ChangeLog change_stack[STACK_SIZE];
+ChangeLog *ptr_change_stack;
+void stack_init();
+ChangeLog stack_pop();
+void shape_push(ChangeMode mode,Point position,Shape shape,char direction);
+void score_push(int score);
+void heat_push(Point position, int score);
+void start_push();
 
 char  Board     [15][15]   ;
 Shape BoardState[15][15][4];

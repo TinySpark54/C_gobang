@@ -10,7 +10,8 @@ add_executable(${PROJECT_NAME}
         gobang.cpp
         linked_list.cpp
         main.cpp
-        graphic_test.cpp)
+        graphic_test.cpp
+        stack.cpp)
 
 add_executable(graphic graphic_test.cpp
         linked_list.h)

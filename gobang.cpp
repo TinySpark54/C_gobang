@@ -64,6 +64,10 @@ void change(Point point,char dir,char player)
     char deltaY;
     int total_length;
     int total_pieces;
+    int heat_temp;
+    int score_temp;
+    Shape shape_temp;
+    start_push();
     switch (dir)
     {
         case 0:deltaX = 1;deltaY = 0;break;
@@ -87,18 +91,42 @@ void change(Point point,char dir,char player)
             }
 
             if (Board[point.Y+deltaY][point.X+deltaX] == player) {
-                BoardState[point.Y][point.X][dir] = BoardState[point.Y+deltaY][point.X+deltaX][dir];
-                BoardState[point.Y][point.X][dir].length0 ++;
-                BoardState[point.Y][point.X][dir].isblocked_begin == true;
-                total_pieces = BoardState[point.Y][point.X][dir].length0 +BoardState[point.Y][point.X][dir].length1;
-                total_length = total_pieces + (BoardState[point.Y][point.X][dir].length1 ==0?0:1);
-                if (!BoardState[point.Y][point.X][dir].isblocked_end) {
-                    HeatMap[point.Y+deltaY*(total_length+1)][point.X+deltaX*(total_length+1)] +=(value_blocked[total_pieces]-value_free[total_pieces-1]);
-                }
-                if (BoardState[point.Y][point.X][dir].length1 != 0) {
+                shape_temp = BoardState[point.Y+deltaY][point.X+deltaX][dir];
+                shape_temp.length0 ++;
+                shape_temp.isblocked_begin == true;
+                BoardState[point.Y][point.X][dir] = shape_temp;
+                shape_push(shape_create,point,shape_temp,dir);
+                total_pieces = shape_temp.length0 +shape_temp.length1;
+                total_length = total_pieces + (shape_temp.length1 ==0?0:1);
+                heat_temp = value_blocked[total_pieces]-value_free[total_pieces-1];
 
+                if (!shape_temp.isblocked_end ) {
+                    //分值表的第0位为一子
+                    HeatMap[point.Y+deltaY*(total_length+1)][point.X+deltaX*(total_length+1)] +=heat_temp;
+                    heat_push({
+                                  (char)(point.Y + deltaY * (total_length + 1)),
+                                  (char)(point.X + deltaX * (total_length + 1))
+                              }, heat_temp);
+                    score_temp = value_blocked[total_pieces-1]- value_free[total_pieces-2];
                 }
+                else if (total_length < 5)
+                {
+                    heat_temp = -HeatMap[point.Y+deltaY*(shape_temp.length0+1)][point.X+deltaX*(shape_temp.length0+1)];
+                    score_temp =-value_blocked[total_pieces-1];
+                }
+                if (shape_temp.length1 != 0) {
+
+                    HeatMap[point.Y+deltaY*(shape_temp.length0+1)][point.X+deltaX*(shape_temp.length0+1)] +=heat_temp;
+                    heat_push({
+                                  (char)(point.Y + deltaY * (shape_temp.length0 + 1)),
+                                  (char)(point.X + deltaX * (shape_temp.length0 + 1))
+                              }, heat_temp);
+                }
+                shape_push(shape_destroy, {(char)(point.Y + deltaY), (char)(point.X + deltaX)}, shape_temp, dir);
                 BoardState[point.Y+deltaY][point.X+deltaX][dir].shape =null;
+
+                score_push(score_temp);
+
             }
             //正向搜索
 
