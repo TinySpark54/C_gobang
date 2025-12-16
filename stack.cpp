@@ -8,7 +8,7 @@ ChangeLog stack_pop()
 {
     return *--ptr_change_stack;
 }
-void shape_push(ChangeMode mode,Point position,Shape shape,char direction)
+void shape_push(ChangeMode mode,Point position,Shape shape,char direction)//仅记录删除/变更时需要完整信息，记录新增无需，宜拆成两个
 {
     ChangeLog log;
     log.mode=mode;

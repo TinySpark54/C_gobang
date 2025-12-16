@@ -10,6 +10,8 @@
 #define MAXDEPTH 6
 #define BOARD_SIZE 15
 #define COMPUTER 1
+#define EMPTY 0
+#define HUMAN -1
 
 #define SCORE_SINGLE 1
 #define SCORE_NEIGHBOR_BLOCKED 2
@@ -35,11 +37,11 @@ typedef enum
 typedef struct
 {
     bool owner            :1;
-    Ownerless_Shape shape :7;//删
+    //Ownerless_Shape shape :7;//删
     bool isblocked_begin  :1;
     bool isblocked_end    :1;
-    char length0          :5;
-    char length1          :8;
+    char length0          :7;
+    char length1          :6;
 }Shape;
 typedef struct {
     char X;
@@ -98,10 +100,12 @@ int HeatMap   [15][15]   ;
 int   Score;
 Point FinalChoice;
 
+bool is_within_board(char X, char Y);
+
 Point *generate_choices();
-void next_state(Point point,bool isMachine);
-void de_state(Point point);//考虑用栈
-void change(Point point,char dir,char player);
+bool next_state(Point point,bool isMachine);
+void de_state();//用栈
+bool change(Point point,char dir,char player);
 
 int search(Point point, int depth, bool isMachine, int alpha_beta);//每层搜索直接编辑BoardState,出口前回退状态
 int get_value();
