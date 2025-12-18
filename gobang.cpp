@@ -127,20 +127,18 @@ bool change(Point point, char dir, char player)
                         shape_push(shape_destroy, {(char)Yi, (char)Xi},
                                    shape_temp, dir);
 
+                        char Ybroke = point.Y - (shape_temp.length1 + 1) * deltaY;
+                        char Xbroke = point.X - (shape_temp.length1 + 1) * deltaX;
                         if (!shape_temp.isblocked_begin)
                         {
-                            heat_temp = value_blocked[total_pieces] - value_free[total_pieces];
-                            score_temp = (total_length>4)?0:player*(value_blocked[total_pieces-1] - value_free[total_pieces-1]);
+                            heat_temp = value_blocked[total_pieces];
+                            score_temp = (total_length>4)?0:player*value_blocked[total_pieces-1];
                             Score += score_temp;
                             score_push(score_temp);
                             if (shape_temp.length1 > 0)
                             {
-                                heat_push({
-                                              (char)(point.Y - (shape_temp.length1 + 1) * deltaY),
-                                              (char)(point.X - (shape_temp.length1 + 1) * deltaX)
-                                          }, heat_temp);
-                                HeatMap[point.Y - (shape_temp.length1 + 1) * deltaY][point.X - (shape_temp.length1 + 1)
-                                    * deltaX] += heat_temp;
+                                heat_push({Ybroke,Xbroke}, heat_temp);
+                                HeatMap[Ybroke][Xbroke] += heat_temp;
 
                             }
                             if (shape_temp.length1 == 0 || total_length<4)
@@ -159,10 +157,10 @@ bool change(Point point, char dir, char player)
                             if (shape_temp.length1 != 0)
                             {
                                 heat_push({
-                                              (char)(point.Y - (shape_temp.length1+1) * deltaY),
-                                              (char)(point.X - (shape_temp.length1+1) * deltaX)
+                                              Ybroke,
+                                              (char)Xbroke
                                           }, -value_blocked[shape_temp.length0 + shape_temp.length1]);
-                                HeatMap[point.Y - (shape_temp.length1+1) * deltaY][point.X - (shape_temp.length1+1) * deltaX] = 0;
+                                HeatMap[point.Y - (shape_temp.length1+1) * deltaY][Xbroke] = 0;
                             }
                         }
 
@@ -190,6 +188,9 @@ bool change(Point point, char dir, char player)
                             }
                             else
                             {
+                                score_temp = player * value_blocked[total_pieces-1];
+                                score_push(score_temp);
+                                Score += score_temp;
                                 for (int j=2;;j++)
                                 {
                                     char Yj = point.Y - (i+j) * deltaY;
@@ -221,7 +222,11 @@ bool change(Point point, char dir, char player)
                                             }
                                             else
                                             {
-                                                heat_temp = value_blocked[BoardState[Yj][Xj][dir].length0+BoardState[Yj][Xj][dir].length1-1]-
+                                                heat_temp = value_blocked[BoardState[Yj][Xj][dir].length0+BoardState[Yj][Xj][dir].length1-1];
+                                                heat_push({(char)(Xi-1),(char)(Yi-1)},heat_temp);
+                                                HeatMap[Yi-1][Xi-1]=heat_temp;
+                                                heat_push({(char)(Xj-1),(char)(Yj-1)},heat_temp);
+                                                HeatMap[Yj-1][Xj-1]=heat_temp;
                                             }
                                         }
                                         else goto break_front_inline;
