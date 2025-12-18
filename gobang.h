@@ -25,13 +25,13 @@
 #define SCORE_LOSE -1000000
 
 
-typedef enum
-{
-    null = 0, single, neighbor0110, neighbor011x, neighborx110, neighbor_dead, jump01010, jump0101x, jumpx1010,
-    jump_dead, three01110, three0111x, threex1110, three_dead, threejump011010, threejump01101x, threejumpx11010,
-    threejump1101dead, threejump010110, threejump01011x, threejumpx10110, threejump1011dead, four011110, four01111x,
-    fourx11110, four_dead, fourjump11101, fourjump10111, fourjump11011, five
-} Ownerless_Shape;
+// typedef enum
+// {
+//     null = 0, single, neighbor0110, neighbor011x, neighborx110, neighbor_dead, jump01010, jump0101x, jumpx1010,
+//     jump_dead, three01110, three0111x, threex1110, three_dead, threejump011010, threejump01101x, threejumpx11010,
+//     threejump1101dead, threejump010110, threejump01011x, threejumpx10110, threejump1011dead, four011110, four01111x,
+//     fourx11110, four_dead, fourjump11101, fourjump10111, fourjump11011, five
+// } Ownerless_Shape;
 //typedef enum {neighbor11=1,three111x=2,three1110=10,four1111x=15,four11110=100,five=200}ShapeValue;
 
 typedef struct
@@ -52,8 +52,8 @@ typedef struct {
     char dirY;
 }Direction;
 
-const short value_free[]={1,10,1000,10000};
-const short value_blocked[]={1,2,200,2000};
+const short value_free[]={1,10,1000,10000,};
+const short value_blocked[]={1,2,200,2000,};
 
 typedef enum
 {
@@ -109,4 +109,5 @@ bool change(Point point,char dir,char player);
 
 int search(Point point, int depth, bool isMachine, int alpha_beta);//每层搜索直接编辑BoardState,出口前回退状态
 int get_value();
+void init_board();
 #endif //C_GOBANG_GOBANG_H
