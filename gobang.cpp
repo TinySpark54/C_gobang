@@ -36,7 +36,7 @@ int search(Point point, int depth, bool isMachine, int alpha_beta) {
             if (next_state(choices[i],isMachine))
             {
                 de_state();
-                return isMachine?SCORE_WIN:-SCORE_LOSE;
+                return isMachine?SCORE_WIN:-SCORE_WIN;
             }
             temp = search(choices[i],depth-1,!isMachine,value);
 
@@ -76,7 +76,6 @@ bool next_state(Point point, bool isMachine)//不能用void,半路成五立即�
     Board[point.Y][point.X] = player;
     start_push();
     heat_push(point,-HeatMap[point.Y][point.X]);
-    HeatMap[point.Y][point.X]=0;
     for (int i = 0; i < 4; i++) {
         if (change(point, i, player))
         {
@@ -90,23 +89,17 @@ bool next_state(Point point, bool isMachine)//不能用void,半路成五立即�
 //使用读取前方格state并处理，已知问题：难以表示长连；直接在过程中修改分数，不再最终估值
 bool change(Point point, char dir, char player)
 {
-    char deltaX;
-    char deltaY;
+
     int total_length;
     int total_pieces;
     int heat_temp;
     int score_temp;
-    bool is_alive = is_within_board(point.X + deltaX,point.Y + deltaY);
     Shape shape_temp;
-
-    switch (dir)
-    {
-    case 0: deltaX = 1;        deltaY = 0;        break;
-    case 1: deltaX = 1;        deltaY = 1;        break;
-    case 2: deltaX = 0;        deltaY = 1;        break;
-    case 3: deltaX = -1;       deltaY = 1;        break;
-    default: return;
-    }
+    char deltaX = dir?2-dir:1;
+    char deltaY = dir?1:0;
+    char Xrightnear = point.X + deltaX;
+    char Yrightnear = point.Y + deltaY;
+    bool is_alive = is_within_board(Xrightnear,Yrightnear)&&Board[Yrightnear][Xrightnear] != -player;
     if (!is_within_board(point.X - deltaX, point.Y - deltaY) || Board[point.Y - deltaY][point.X - deltaX] == -player)//左堵
     {
         if (Board[point.Y - deltaY][point.X - deltaX] == -player)//左敌
@@ -118,116 +111,62 @@ bool change(Point point, char dir, char player)
                 if (BoardState[Yi][Xi][dir].length0 != 0)
                 {
                     shape_temp = BoardState[Yi][Xi][dir];
-                    total_pieces = shape_temp.length0 + shape_temp.length1;
+                    shape_push(shape_del,{Xi,Yi},shape_temp,dir);
                     total_length = total_pieces + (shape_temp.length1 == 0 ? 0 : 1);
-                    BoardState[Yi][Xi][dir].isblocked_end = true;
+
                     //左敌左查
-                    if (total_length <= i)
+                    if (total_length == i)
                     {
-                        shape_push(shape_destroy, {(char)Yi, (char)Xi},
-                                   shape_temp, dir);
-
-                        char Ybroke = point.Y - (shape_temp.length1 + 1) * deltaY;
-                        char Xbroke = point.X - (shape_temp.length1 + 1) * deltaX;
-                        if (!shape_temp.isblocked_begin)
+                        shape_temp.isblocked_end = true;
+                        shape_push(shape_create, {Yi, Xi}, shape_temp, dir);
+                        if (!is_alive &&is_within_board(Xrightnear,Yrightnear))
                         {
-                            heat_temp = value_blocked[total_pieces];
-                            score_temp = (total_length>4)?0:player*value_blocked[total_pieces-1];
-                            Score += score_temp;
-                            score_push(score_temp);
-                            if (shape_temp.length1 > 0)
-                            {
-                                heat_push({Ybroke,Xbroke}, heat_temp);
-                                HeatMap[Ybroke][Xbroke] += heat_temp;
-
-                            }
-                            if (shape_temp.length1 == 0 || total_length<4)
-                            {
-                                heat_push({
-                                          (char)(point.Y - (total_length + 1) * deltaY),
-                                          (char)(point.X - (total_length + 1) * deltaX)
-                                      }, heat_temp);
-                                HeatMap[point.Y - (total_length + 1) * deltaY][point.X - (total_length + 1) * deltaX] += heat_temp;
-
-                            }
+                            shape_temp=BoardState[Yrightnear][Xrightnear][dir];
+                            shape_push(shape_del,{Xrightnear,Yrightnear},shape_temp,dir);
+                            shape_temp.isblocked_begin = true;
+                            shape_push(shape_create,{Xrightnear,Yrightnear},shape_temp,dir);
                         }
-                        else if (total_length < 5)
-                        {
-                            score_temp = player * value_blocked[total_pieces - 1];
-                            if (shape_temp.length1 != 0)
-                            {
-                                heat_push({
-                                              Ybroke,
-                                              (char)Xbroke
-                                          }, -value_blocked[shape_temp.length0 + shape_temp.length1]);
-                                HeatMap[point.Y - (shape_temp.length1+1) * deltaY][Xbroke] = 0;
-                            }
-                        }
-
                     }
                     else//切断了敌方棋形
                     {
-                        shape_push(shape_destroy,{
-                                              (char)Yi,
-                                              (char)Xi
-                                          },shape_temp, dir);
+                        // shape_push(shape_create, {
+                        //                       (char)Yi,
+                        //                       (char)Xi
+                        //                   },shape_temp, dir);
                         //处理前半段
+                        Shape shape_left;
+                        shape_left.owner = -player;
+                        Shape shape_right;
+                        shape_right.owner = -player;
                         if (!shape_temp.isblocked_begin)
                         {
-                            if (!is_within_board(point.X-(i+2)*deltaX, point.Y-(i+2)*deltaY) ||Board[point.Y-(i+2)*deltaY][point.X-(i+2)*deltaX] != player)
+                            if (!is_within_board(point.X-(i+2)*deltaX, point.Y-(i+2)*deltaY) ||Board[point.Y-(i+2)*deltaY][point.X-(i+2)*deltaX] != -player)
                             {
                                 break_front_inline:
-
-                                BoardState[Yi][Xi][dir].length1 = 0;
-                                heat_temp = value_blocked[shape_temp.length0-1]-(shape_temp.isblocked_end?value_blocked:value_free)[total_pieces-1];
-                                HeatMap[point.Y - (i+1) * deltaY][point.X - (i+1) * deltaX] += heat_temp;
-                                heat_push({
-                                              (char)(point.Y - (i+1) * deltaY),
-                                              (char)(point.X - (i+1) * deltaX)
-                                          },heat_temp);
+                                shape_left = shape_temp;
+                                shape_left.length1 = 0;
+                                shape_left.isblocked_end = true;
+                                shape_push(shape_create,{Xi,Yi},shape_left,dir);
                             }
                             else
                             {
-                                score_temp = player * value_blocked[total_pieces-1];
-                                score_push(score_temp);
-                                Score += score_temp;
+                                // score_temp = player * value_blocked[total_pieces-1];
+                                // score_push(score_temp);
                                 for (int j=2;;j++)
                                 {
                                     char Yj = point.Y - (i+j) * deltaY;
                                     char Xj = point.X - (i+j) * deltaX;
-                                    if (BoardState[BoardState[Yj][Xj][dir].length0 != 0 ])
+                                    if (BoardState[Yj][Xj][dir].length0 != 0)
                                     {
+
                                         if (BoardState[Yj][Xj][dir].length1 ==0)
                                         {
-                                            shape_push(shape_destroy,{Yj,Xj},BoardState[Yj][Xj][dir],dir);
-                                            BoardState[Yj][Xj][dir].length1 = shape_temp.length0;
-                                            BoardState[Yj][Xj][dir].isblocked_end = true;
-                                            BoardState[Yi][Xi][dir].length0 = 0;
+                                            shape_left = BoardState[Yj][Xj][dir];
+                                            shape_push(shape_del, {Yj,Xj},shape_left, dir);
+                                            shape_left.length1=shape_temp.length0;
+                                            shape_left.isblocked_end = true;
+                                            shape_push(shape_create, {Yj,Xj},shape_left, dir);
 
-                                            if (BoardState[Yj][Xj][dir].isblocked_begin)
-                                            {
-                                                if (BoardState[Yj][Xj][dir].length0+BoardState[Yj][Xj][dir].length1 >3)
-                                                {
-                                                    heat_temp = SCORE_WIN;
-                                                }else
-                                                {
-                                                    heat_temp = 0;
-                                                    score_temp = player * value_blocked[BoardState[Yj][Xj][dir].length0+BoardState[Yj][Xj][dir].length1-1];
-                                                    score_push(score_temp);
-                                                    Score += score_temp;
-                                                }
-
-                                                heat_push({(char)(Xi-1),(char)(Yi-1)},heat_temp);
-                                                HeatMap[Yi-1][Xi-1]=heat_temp;
-                                            }
-                                            else
-                                            {
-                                                heat_temp = value_blocked[BoardState[Yj][Xj][dir].length0+BoardState[Yj][Xj][dir].length1-1];
-                                                heat_push({(char)(Xi-1),(char)(Yi-1)},heat_temp);
-                                                HeatMap[Yi-1][Xi-1]=heat_temp;
-                                                heat_push({(char)(Xj-1),(char)(Yj-1)},heat_temp);
-                                                HeatMap[Yj-1][Xj-1]=heat_temp;
-                                            }
                                         }
                                         else goto break_front_inline;
                                         break;
@@ -236,123 +175,115 @@ bool change(Point point, char dir, char player)
                             }
                         }
                         //处理后半段
-                        shape_temp.length0 = shape_temp.length1;
-                        shape_temp.length1 = 0;
+                        shape_right.length0 = shape_temp.length1;
+                        shape_right.isblocked_begin = true;
+                        //shape_temp.length1 = 0;
+                        if (!shape_temp.isblocked_end)
+                        {
+                            char Yringt = point.Y + (shape_temp.length0+2) * deltaY;
+                            char Xringt = point.X + (shape_temp.length0+2) * deltaX;
+                            if (!is_within_board(Xringt, Yringt) || Board[Yringt][Xringt] != -player)
+                            {
+                                shape_right.length1=0;
+                                shape_right.isblocked_end = false;
+                                shape_push(shape_create, {(char)(point.X+1),(char)(point.Y+1)},shape_right, dir);
+                            }
+                            else if (BoardState[Yringt][Xringt][dir].length1 ==0)
+                            {
+                                shape_right.length1 = BoardState[Yringt][Xringt][dir].length0;
+                                shape_right.isblocked_end = BoardState[Yringt][Xringt][dir].isblocked_end;
+                                shape_push(shape_del,{Xringt,Yringt}, BoardState[Yringt][Xringt][dir], dir);
+                                shape_push(shape_create,{(char)Xrightnear,(char)Yrightnear}, shape_right, dir);
+                            }
+                        }
                         is_alive = false;
                     }
                     break;
                 }
             }
-        }
         //左敌右查
         if (is_alive)
         {
-            if (Board[point.Y + deltaY][point.X + deltaX] == player) //连
+            if (Board[Yrightnear][Xrightnear] == player) //连
             {
-                shape_temp = BoardState[point.Y + deltaY][point.X + deltaX][dir];
+                shape_temp = BoardState[Yrightnear][Xrightnear][dir];
                 shape_temp.length0++;
                 if (shape_temp.length0 == 5)
                 {
                     return true;
                 }
                 shape_temp.isblocked_begin == true;
-                BoardState[point.Y][point.X][dir] = shape_temp;
-                shape_push(shape_create, point, shape_temp, dir);
-                total_pieces = shape_temp.length0 + shape_temp.length1;
-                total_length = total_pieces + (shape_temp.length1 == 0 ? 0 : 1);
-                heat_temp = value_blocked[total_pieces] - value_free[total_pieces - 1];
-
-                if (!shape_temp.isblocked_end)
-                {
-                    //分值表的第0位为一子
-                    HeatMap[point.Y + deltaY * (total_length + 1)][point.X + deltaX * (total_length + 1)] +=
-                        heat_temp;
-                    heat_push({
-                                  (char)(point.Y + deltaY * (total_length + 1)),
-                                  (char)(point.X + deltaX * (total_length + 1))
-                              }, heat_temp);
-                    score_temp = player * (value_blocked[total_pieces - 1] - value_free[total_pieces - 2]);
-                }
-                else if (total_length < 5)
-                {
-                    heat_temp = -value_blocked[total_pieces - 1];
-                    score_temp = -player * value_blocked[total_pieces - 2];
-                }
-                if (shape_temp.length1 != 0)
-                {
-                    //中间断开一律算冲四
-
-                    HeatMap[point.Y + deltaY * (shape_temp.length0 + 1)][point.X + deltaX * (shape_temp.length0
-                        + 1)] += heat_temp;
-                    heat_push({
-                                  (char)(point.Y + deltaY * (shape_temp.length0 + 1)),
-                                  (char)(point.X + deltaX * (shape_temp.length0 + 1))
-                              }, heat_temp);
-                    if (total_length >= 5)
-                    {
-                        score_temp = player * (value_blocked[4 - 1] - value_blocked[3 - 1]);
-                    }
-                }
-                shape_push(shape_destroy, {(char)(point.Y + deltaY), (char)(point.X + deltaX)}, shape_temp,
-                           dir);
-                BoardState[point.Y + deltaY][point.X + deltaX][dir].length0 = 0;
-
-                score_push(score_temp);
+                shape_push(shape_del,{(char)Xrightnear,(char)Yrightnear},BoardState[Yrightnear][Xrightnear][dir],dir);
             }
-            else if (Board[point.Y + deltaY][point.X + deltaX] == EMPTY)
+            else if (Board[Yrightnear][Xrightnear] == EMPTY)
             {
-                if (is_within_board(point.X + deltaX * 2,point.Y + deltaY * 2) && Board[point.Y + deltaY * 2][point.X + deltaX * 2] == player && BoardState[point.Y + deltaY * 2][point.X + deltaX * 2][dir].length1 ==0)//跳
+                char Xright = point.X + deltaX * 2;
+                char Yright = point.Y + deltaY * 2;
+                if (is_within_board(Xright,Yright) && Board[Yright][Xright] == player && BoardState[Yright][Xright][dir].length1 ==0)//跳
                 {
-
+                    shape_temp = {player==1,true,BoardState[Yright][Xright][dir].isblocked_end,1,BoardState[Yright][Xright][dir].length0};
+                    shape_push(shape_del,{Xright,Yright},BoardState[Yright][Xright][dir],dir);
                 }
                 else
                 {
-
+                    shape_temp ={player==1,true,false,1,0};
                 }
-            }
-            else //空/死
-            {
             }
         }
-
-
-
-
-        else if (Board[point.Y-deltaY][point.X-deltaX] == player || Board[point.Y-deltaY*2][point.X-deltaX*2] == player)
+        else//死
         {
-            for (int i = 1;; i++)
-            {
-                if (BoardState[point.Y-i*deltaY][point.X-i*deltaX][dir].length0 != 0)
-                {
-                    switch (i)
-                    {
-                        case 1:
-
-                            break;
-                        case 2:break;
-                        case 3:break;
-                        case 4:break;
-                        case 5:break;
-                        default:break;
-                    }
-                    //重构和热力图\分数修改
-                    return;
-                }
-            }
+            shape_temp = {player==1,true,true,1,0};
+        }
+        shape_push(shape_create,point,shape_temp,dir);
         }
     }
     else if (Board[point.Y-deltaY][point.X-deltaX] == player)//左己
     {
+        for (int i=1;;i++)
+        {
+            char Xi = point.X - i * deltaX;
+            char Yi = point.Y - i * deltaY;
+            if (BoardState[Yi][Xi][dir].length0 != 0)
+            {
+                shape_temp = BoardState[Yi][Xi][dir];
+                shape_push(shape_del,{Xi,Yi},shape_temp,dir);
+                if (shape_temp.length1 ==0)
+                {
+                    shape_temp.length0++;
+                }
+                else
+                {
+                    shape_temp.length1++;
+                }
 
+                shape_push(shape_create,{Xi,Yi},shape_temp,dir);
+                break;
+            }
+        }
     }
     else if (is_within_board(point.X-deltaX*2,point.Y-deltaY*2) ||Board[point.Y-deltaY*2][point.X-deltaX*2] == player)//左跳一己
     {
+        for (int i=1;;i++)
+        {
+            char Xi = point.X - i * deltaX;
+            char Yi = point.Y - i * deltaY;
+            if (BoardState[Yi][Xi][dir].length0 != 0)
+            {
+                if (BoardState[Yi][Xi][dir].length1 == 0)
+                {
 
+                }
+                break;
+            }
+        }
     }
     else//孤子
     {
-
+        //改 owner与player的判定
+        //中途胜利判定
+        //右判
     }
+    return false;
 
 }
 void de_state() {
@@ -367,7 +298,7 @@ void de_state() {
             case shape_create:
                 BoardState[change_log.data.shapeData.position.Y][change_log.data.shapeData.position.X][change_log.data.shapeData.direction].length0 =0;
                 break;
-            case shape_destroy:
+            case shape_del:
                 BoardState[change_log.data.shapeData.position.Y][change_log.data.shapeData.position.X][change_log.data.shapeData.direction] = change_log.data.shapeData.shape;
                 break;
             case score_change:

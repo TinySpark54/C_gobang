@@ -1,3 +1,71 @@
+// total_pieces = shape_temp.length0 + shape_temp.length1;
+// total_length = total_pieces + (shape_temp.length1 == 0 ? 0 : 1);
+// heat_temp = value_blocked[total_pieces] - value_free[total_pieces - 1];
+//
+// if (!shape_temp.isblocked_end)
+// {
+//     //分值表的第0位为一子
+//     heat_push({
+//                   (char)(point.Y + deltaY * (total_length + 1)),
+//                   (char)(point.X + deltaX * (total_length + 1))
+//               }, heat_temp);
+//     score_temp = player * (value_blocked[total_pieces - 1] - value_free[total_pieces - 2]);
+// }
+// else if (total_length < 5)
+// {
+//     heat_temp = -value_blocked[total_pieces - 1];
+//     score_temp = -player * value_blocked[total_pieces - 2];
+// }
+// if (shape_temp.length1 != 0)
+// {
+//     //中间断开一律算冲四
+//
+//     heat_push({
+//                   (char)(point.Y + deltaY * (shape_temp.length0 + 1)),
+//                   (char)(point.X + deltaX * (shape_temp.length0 + 1))
+//               }, heat_temp);
+//     if (total_length >= 5)
+//     {
+//         score_temp = player * (value_blocked[4 - 1] - value_blocked[3 - 1]);
+//     }
+// }
+// shape_push(shape_create, {(char)(point.Y + deltaY), (char)(point.X + deltaX)}, shape_temp, dir);
+// BoardState[point.Y + deltaY][point.X + deltaX][dir].length0 = 0;
+//
+// score_push(score_temp);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //     switch (BoardState[point.Y+deltaY][point.X+deltaX][dir].shape) {
             //         case single:
             //             if (Board[point.Y+deltaY*2][point.X+deltaX*2] == 0) {

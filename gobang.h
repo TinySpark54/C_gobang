@@ -5,24 +5,18 @@
 #ifndef C_GOBANG_GOBANG_H
 #define C_GOBANG_GOBANG_H
 #include "linked_list.h"
+#define MAX(a,b) (((a)>(b))?(a):(b))
+#define MIN(a,b) (((a)<(b))?(a):(b))
 
 #define MAXBRANCHES 10
 #define MAXDEPTH 6
 #define BOARD_SIZE 15
 #define COMPUTER 1
 #define EMPTY 0
-#define HUMAN -1
+#define HUMAN (-1)
 
-#define SCORE_SINGLE 1
-#define SCORE_NEIGHBOR_BLOCKED 2
-#define SCORE_NEIGHBOR_FREE 10
-#define SCORE_THREE_BLOCKED 100
-#define SCORE_THREE_FREE 1000
-#define SCORE_FOUR_BLOCKED 1800
-#define SCORE_FOUR_FREE 10000
-#define SCORE_WIN 100000
+#define SCORE_WIN 10000
 
-#define SCORE_LOSE -1000000
 
 
 // typedef enum
@@ -52,14 +46,14 @@ typedef struct {
     char dirY;
 }Direction;
 
-const short value_free[]={1,10,1000,10000,};
-const short value_blocked[]={1,2,200,2000,};
+const short value_free[]={1,10,100,1000,10000};
+const short value_blocked[]={1,2,20,200,10000};
 
 typedef enum
 {
     end_of_change = 0,
     shape_create,
-    shape_destroy,
+    shape_del,
     score_change,
     heat_change,
 }ChangeMode;
@@ -84,12 +78,12 @@ typedef struct
     }data;
 }ChangeLog;
 
-#define STACK_SIZE 200
+#define STACK_SIZE 2000
 ChangeLog change_stack[STACK_SIZE];
 ChangeLog *ptr_change_stack;
 void stack_init();
 ChangeLog stack_pop();
-void shape_push(ChangeMode mode,Point position,Shape shape,char direction);
+void shape_push(ChangeMode mode, Point position, Shape shape, char direction);
 void score_push(int score);
 void heat_push(Point position, int score);
 void start_push();
