@@ -4,12 +4,15 @@
 
 #ifndef C_GOBANG_GOBANG_H
 #define C_GOBANG_GOBANG_H
-#include "linked_list.h"
+
+#include <cstring>
+#include <cstdlib>
+
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
-#define MAXBRANCHES 10
-#define MAXDEPTH 6
+#define MAXBRANCHES 8
+#define MAXDEPTH 2
 #define BOARD_SIZE 15
 #define COMPUTER 1
 #define EMPTY 0
@@ -46,6 +49,16 @@ typedef struct {
     char dirY;
 }Direction;
 
+typedef struct Node{
+    struct
+    {
+        int heat;
+        Point point;
+    }data;
+
+    Node *next;
+}Node;
+
 const short value_free[]={1,10,100,1000,10000};
 const short value_blocked[]={1,2,20,200,10000};
 
@@ -79,8 +92,8 @@ typedef struct
 }ChangeLog;
 
 #define STACK_SIZE 2000
-ChangeLog change_stack[STACK_SIZE];
-ChangeLog *ptr_change_stack;
+extern ChangeLog change_stack[STACK_SIZE];
+extern ChangeLog *ptr_change_stack;
 void stack_init();
 ChangeLog stack_pop();
 void shape_push(ChangeMode mode, Point position, Shape shape, char direction);
@@ -88,20 +101,20 @@ void score_push(int score);
 void heat_push(Point position, int score);
 void start_push();
 
-char  Board     [15][15]   ;
-Shape BoardState[15][15][4];
-int HeatMap   [15][15]   ;
-int   Score;
-Point FinalChoice;
+extern char  Board     [15][15]   ;
+extern Shape BoardState[15][15][4];
+extern int HeatMap   [15][15]   ;
+extern int   Score;
+extern Point FinalChoice;
 
 bool is_within_board(char X, char Y);
 
 Point *generate_choices();
 bool next_state(Point point,bool isMachine);
-void de_state();//用栈
+void de_state(Point point);//用栈
 bool change(Point point,char dir,char player);
 
-int search(Point point, int depth, bool isMachine, int alpha_beta);//每层搜索直接编辑BoardState,出口前回退状态
+int search(int depth, bool isMachine, int alpha_beta);//每层搜索直接编辑BoardState,出口前回退状态
 int get_value();
 void init_board();
 #endif //C_GOBANG_GOBANG_H

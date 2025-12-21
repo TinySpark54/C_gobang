@@ -6,10 +6,10 @@
 #define C_GOBANG_LINKED_LIST_H
 #include <stdio.h>
 #include <stdlib.h>
-struct Node{
-    int data;
-    struct Node *next;
-};
+
+#include "gobang.h"
+
+
 struct Node *CreateList();
 int insert(struct Node **list, int name);
 void append(struct Node *list, int data);

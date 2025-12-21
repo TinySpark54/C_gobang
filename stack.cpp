@@ -8,9 +8,13 @@ ChangeLog stack_pop()
 {
     return *--ptr_change_stack;
 }
-void shape_push(ChangeMode mode, Point position, Shape shape, char direction)//仅记录删除/变更时需要完整信息，记录新增无需，宜拆成两个
+void shape_push(ChangeMode mode, Point position, Shape shape, char direction)
 {
-    ChangeLog log = {mode,shape,position,direction};
+    ChangeLog log;
+    log.mode = mode;
+    log.data.shapeData.shape = shape;
+    log.data.shapeData.position = position;
+    log.data.shapeData.direction = direction;
     *ptr_change_stack++ = log;
     //score和heat全部整合在这里
     char add = mode==shape_create?1:-1;
