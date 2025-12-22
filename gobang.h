@@ -7,14 +7,14 @@
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
-#define MAXBRANCHES 15
+#define MAXBRANCHES 20
 #define MAXDEPTH 7
 #define BOARD_SIZE 15
 #define COMPUTER 1
 #define EMPTY 0
 #define HUMAN (-1)
 
-#define SCORE_WIN 10000
+#define SCORE_WIN 100000
 
 typedef struct
 {
