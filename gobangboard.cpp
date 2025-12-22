@@ -376,7 +376,7 @@ void GobangBoard::computerMove()
     qDebug() << "电脑思考中...";
 
     // 电脑走棋
-    int computer_score = search(MAXDEPTH, true, -1000000);
+    search(MAXDEPTH, true, -1000000);
 
     // 电脑下棋
     next_state(FinalChoice, true);
@@ -496,8 +496,8 @@ void GobangBoard::showAbout()
                        "• 使用Alpha-Beta剪枝搜索算法\n"
                        "• 支持热力图启发式搜索\n"
                        "• 美观的图形界面\n\n"
-                       "作者：AI Assistant\n"
-                       "版本：1.0");
+                       "作者：TinySpark\n"
+                       "版本：0.1");
 }
 
 void GobangBoard::resizeEvent(QResizeEvent *event)
