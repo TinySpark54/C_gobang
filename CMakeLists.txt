@@ -14,5 +14,9 @@ add_executable(${PROJECT_NAME}
 
 add_executable(graphic graphic_test.cpp
         linked_list.h
-        gobang.cpp)
+        gobang.cpp
+        gobangboard.h
+        gobangboard.cpp
+        main.cpp
+)
 add_executable(test test.cpp)

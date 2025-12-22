@@ -1,12 +1,62 @@
 #include "gobang.h"
 #include <cstdlib>
 #include <cstring>
+#include <stdio.h>
 
 char Board[15][15];
 Shape BoardState[15][15][4];
 int HeatMap[15][15];
 int Score;
 Point FinalChoice;
+
+// 添加胜利检查函数
+bool checkWin(int x, int y, char player)
+{
+    // 检查八个方向（四个直线方向）
+    int directions[4][2] = {
+        {1, 0},  // 水平
+        {0, 1},  // 垂直
+        {1, 1},  // 主对角线
+        {1, -1}  // 副对角线
+    };
+
+    for (int d = 0; d < 4; d++)
+    {
+        int dx = directions[d][0];
+        int dy = directions[d][1];
+        int count = 1; // 当前位置的棋子
+
+        // 正向检查
+        for (int i = 1; i <= 4; i++)
+        {
+            int newX = x + i * dx;
+            int newY = y + i * dy;
+
+            if (!is_within_board(newX, newY) || Board[newY][newX] != player)
+                break;
+
+            count++;
+        }
+
+        // 反向检查
+        for (int i = 1; i <= 4; i++)
+        {
+            int newX = x - i * dx;
+            int newY = y - i * dy;
+
+            if (!is_within_board(newX, newY) || Board[newY][newX] != player)
+                break;
+
+            count++;
+        }
+
+        // 如果连续5个或以上
+        if (count >= 5)
+            return true;
+    }
+
+    return false;
+}
 
 void init_board()
 {
@@ -37,16 +87,33 @@ int search(int depth, bool isMachine, int alpha_beta)
         int temp;
         Point *choices = generate_choices();
 
-        for (int i = 0; i < MAXBRANCHES && i < depth; i++)
+        for (int i = 0; i < MAXBRANCHES; i++)
         {
-            if (choices[i].X == -1 && choices[i].Y == -1) break;
-
-            if (next_state(choices[i], isMachine))
+            if (Board[choices[i].Y][choices[i].X] != EMPTY)
             {
-                de_state(choices[i]);
+                printf("严重错误：重复落子！");
+                break;
+            }
+            if (choices[i].X == -1) break;
+            // 尝试走这一步
+            Board[choices[i].Y][choices[i].X] = isMachine ? COMPUTER : HUMAN;
+
+            // 检查是否获胜
+            if (checkWin(choices[i].X, choices[i].Y, isMachine ? COMPUTER : HUMAN))
+            {
+                // 恢复棋盘
+                if (depth == MAXDEPTH)
+                {
+                    FinalChoice = choices[i];
+                }
+                Board[choices[i].Y][choices[i].X] = EMPTY;
                 free(choices);
                 return isMachine ? SCORE_WIN : -SCORE_WIN;
             }
+
+            // 使用原来的状态更新
+            next_state(choices[i], isMachine);
+
 
             temp = search(depth - 1, !isMachine, value);
 
@@ -59,7 +126,7 @@ int search(int depth, bool isMachine, int alpha_beta)
                     {
                         FinalChoice = choices[i];
                     }
-                    if (temp >= alpha_beta)
+                    else if (temp >= alpha_beta)
                     {
                         de_state(choices[i]);
                         free(choices);
@@ -91,22 +158,28 @@ int search(int depth, bool isMachine, int alpha_beta)
 
 bool next_state(Point point, bool isMachine)
 {
-    char player = isMachine ? 1 : -1;
-    Board[point.Y][point.X] = player;
+    char player = isMachine ? COMPUTER : HUMAN;
 
+    // 先检查是否立即获胜
+    if (checkWin(point.X, point.Y, player))
+    {
+        return true;
+    }
+
+    Board[point.Y][point.X] = player;
     start_push();
     heat_push(point, -HeatMap[point.Y][point.X]);
 
+    // 更新四个方向的状态，但不再检查胜利
     for (int i = 0; i < 4; i++)
     {
-        if (change(point, i, player))
-        {
-            return true;
-        }
+        change(point, i, player);
     }
+
     return false;
 }
 
+// 修改 change 函数，移除所有胜利检查
 bool change(Point point, char dir, char player)
 {
     Shape shape_temp;
@@ -136,7 +209,7 @@ bool change(Point point, char dir, char player)
                     shape_push(shape_del, {Xi, Yi}, shape_temp, dir);
 
                     int total_length = (shape_temp.length0 + shape_temp.length1) +
-                                      (shape_temp.length1 != 0 ? 1 : 0);
+                                       (shape_temp.length1 != 0 ? 1 : 0);
 
                     if (total_length == i)
                     {
@@ -187,7 +260,6 @@ bool change(Point point, char dir, char player)
                         shape_temp = BoardState[Yrightnear][Xrightnear][dir];
                         shape_push(shape_del, {Xrightnear, Yrightnear}, shape_temp, dir);
                         shape_temp.length0++;
-                        if (shape_temp.length0 >= 5) return true;
                         shape_temp.isblocked_begin = true;
                         shape_push(shape_create, {Xrightnear, Yrightnear}, shape_temp, dir);
                     }
@@ -250,7 +322,6 @@ bool change(Point point, char dir, char player)
                 if (shape_temp.length1 == 0)
                 {
                     shape_temp.length0++;
-                    if (shape_temp.length0 >= 5) return true;
 
                     if (is_within_board(Xrightnear, Yrightnear))
                     {
@@ -259,7 +330,6 @@ bool change(Point point, char dir, char player)
                             Shape shape_right = BoardState[Yrightnear][Xrightnear][dir];
                             shape_push(shape_del, {Xrightnear, Yrightnear}, shape_right, dir);
                             shape_temp.length0 += shape_right.length0;
-                            if (shape_temp.length0 >= 5) return true;
                             shape_temp.length1 = shape_right.length1;
                             shape_temp.isblocked_end = shape_right.isblocked_end;
                             shape_push(shape_create, {Xi, Yi}, shape_temp, dir);
@@ -305,7 +375,6 @@ bool change(Point point, char dir, char player)
                 else
                 {
                     shape_temp.length1++;
-                    if (shape_temp.length1 >= 5) return true;
 
                     if (is_within_board(Xrightnear, Yrightnear))
                     {
@@ -324,7 +393,6 @@ bool change(Point point, char dir, char player)
                             Shape shape_right = BoardState[Yrightnear][Xrightnear][dir];
                             shape_push(shape_del, {Xrightnear, Yrightnear}, shape_right, dir);
                             shape_temp.length1 += shape_right.length0;
-                            if (shape_temp.length1 >= 5) return true;
                             shape_push(shape_create, {Xi, Yi}, shape_temp, dir);
                         }
                     }
@@ -351,7 +419,6 @@ bool change(Point point, char dir, char player)
                     shape_temp = BoardState[Yi][Xi][dir];
                     shape_push(shape_del, {Xi, Yi}, shape_temp, dir);
                     shape_temp.length1++;
-                    if (shape_temp.length1 >= 5) return true;
 
                     if (is_within_board(Xrightnear, Yrightnear) &&
                         Board[Yrightnear][Xrightnear] == player)
@@ -359,7 +426,6 @@ bool change(Point point, char dir, char player)
                         Shape shape_right = BoardState[Yrightnear][Xrightnear][dir];
                         shape_push(shape_del, {Xrightnear, Yrightnear}, shape_right, dir);
                         shape_temp.length1 += shape_right.length0;
-                        if (shape_temp.length1 >= 5) return true;
                         shape_temp.isblocked_end = shape_right.isblocked_end;
                     }
                     else if (is_within_board(Xrightnear, Yrightnear) &&
@@ -390,7 +456,6 @@ bool change(Point point, char dir, char player)
                 shape_temp = BoardState[Yrightnear][Xrightnear][dir];
                 shape_push(shape_del, {Xrightnear, Yrightnear}, shape_temp, dir);
                 shape_temp.length0++;
-                if (shape_temp.length0 >= 5) return true;
                 shape_push(shape_create, point, shape_temp, dir);
             }
             else if (Board[Yrightnear][Xrightnear] == -player)
@@ -438,7 +503,7 @@ bool change(Point point, char dir, char player)
         }
     }
 
-    return false;
+    return false; // 不在这里检查胜利
 }
 
 void de_state(Point point)
@@ -452,28 +517,28 @@ void de_state(Point point)
         change_log = stack_pop();
         switch (change_log.mode)
         {
-            case end_of_change:
-                loop = false;
-                break;
-            case shape_create:
-                BoardState[change_log.data.shapeData.position.Y]
-                          [change_log.data.shapeData.position.X]
-                          [change_log.data.shapeData.direction].length0 = 0;
-                break;
-            case shape_del:
-                BoardState[change_log.data.shapeData.position.Y]
-                          [change_log.data.shapeData.position.X]
-                          [change_log.data.shapeData.direction] =
-                          change_log.data.shapeData.shape;
-                break;
-            case score_change:
-                Score -= change_log.data.score;
-                break;
-            case heat_change:
-                HeatMap[change_log.data.heat.position.Y]
-                       [change_log.data.heat.position.X] -=
-                       change_log.data.heat.score;
-                break;
+        case end_of_change:
+            loop = false;
+            break;
+        case shape_create:
+            BoardState[change_log.data.shapeData.position.Y]
+                      [change_log.data.shapeData.position.X]
+                      [change_log.data.shapeData.direction].length0 = 0;
+            break;
+        case shape_del:
+            BoardState[change_log.data.shapeData.position.Y]
+                      [change_log.data.shapeData.position.X]
+                      [change_log.data.shapeData.direction] =
+                change_log.data.shapeData.shape;
+            break;
+        case score_change:
+            Score -= change_log.data.score;
+            break;
+        case heat_change:
+            HeatMap[change_log.data.heat.position.Y]
+                   [change_log.data.heat.position.X] -=
+                change_log.data.heat.score;
+            break;
         }
     }
 }
@@ -526,18 +591,8 @@ Point *generate_choices()
     // 如果没有热力图启发，选择中心附近的空位
     if (count == 0)
     {
-        for (char i = 7; i >= 0 && count < MAXBRANCHES; i--)
-        {
-            for (char j = 7; j >= 0 && count < MAXBRANCHES; j--)
-            {
-                if (Board[i][j] == EMPTY)
-                {
-                    choices[count].X = j;
-                    choices[count].Y = i;
-                    count++;
-                }
-            }
-        }
+        choices[0].X=7;
+        choices[0].Y=7;
     }
     else
     {
@@ -559,6 +614,7 @@ Point *generate_choices()
 
     return choices;
 }
+
 
 bool is_within_board(char X, char Y)
 {

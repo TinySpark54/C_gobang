@@ -1,3 +1,8 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include "gobang.h"
 
 ChangeLog change_stack[STACK_SIZE];
@@ -134,3 +139,6 @@ void start_push()
     ptr_change_stack->mode = end_of_change;
     ptr_change_stack++;
 }
+#ifdef __cplusplus
+}
+#endif
