@@ -8,8 +8,9 @@ Shape BoardState[15][15][4];
 int HeatMap[15][15];
 int Score;
 Point FinalChoice;
+char firstPlayer;
 
-// 添加胜利检查函数
+// 胜利检查函数
 bool checkWin(int x, int y, char player)
 {
     // 检查八个方向（四个直线方向）
@@ -58,7 +59,7 @@ bool checkWin(int x, int y, char player)
     return false;
 }
 
-void init_board()
+void board_init()
 {
     Score = 0;
     for(int i = 0; i < BOARD_SIZE; i++)
@@ -89,31 +90,26 @@ int search(int depth, bool isMachine, int alpha_beta)
 
         for (int i = 0; i < MAXBRANCHES; i++)
         {
+            if (choices[i].X == -1) break;
             if (Board[choices[i].Y][choices[i].X] != EMPTY)
             {
                 printf("严重错误：重复落子！");
                 break;
             }
-            if (choices[i].X == -1) break;
             // 尝试走这一步
-            Board[choices[i].Y][choices[i].X] = isMachine ? COMPUTER : HUMAN;
 
-            // 检查是否获胜
-            if (checkWin(choices[i].X, choices[i].Y, isMachine ? COMPUTER : HUMAN))
+            // 检查是否获胜；若未获胜，变更局面
+            if (next_state(choices[i], isMachine))
             {
-                // 恢复棋盘
+
                 if (depth == MAXDEPTH)
                 {
                     FinalChoice = choices[i];
                 }
-                Board[choices[i].Y][choices[i].X] = EMPTY;
+                // 获胜，结束递归
                 free(choices);
                 return isMachine ? SCORE_WIN : -SCORE_WIN;
             }
-
-            // 使用原来的状态更新
-            next_state(choices[i], isMachine);
-
 
             temp = search(depth - 1, !isMachine, value);
 
@@ -156,6 +152,7 @@ int search(int depth, bool isMachine, int alpha_beta)
     return Score;
 }
 
+//局势变化
 bool next_state(Point point, bool isMachine)
 {
     char player = isMachine ? COMPUTER : HUMAN;
@@ -170,7 +167,7 @@ bool next_state(Point point, bool isMachine)
     start_push();
     heat_push(point, -HeatMap[point.Y][point.X]);
 
-    // 更新四个方向的状态，但不再检查胜利
+    // 更新四个方向的状态
     for (int i = 0; i < 4; i++)
     {
         change(point, i, player);
@@ -179,7 +176,7 @@ bool next_state(Point point, bool isMachine)
     return false;
 }
 
-// 修改 change 函数，移除所有胜利检查
+//单方向的局势变化处理
 bool change(Point point, char dir, char player)
 {
     Shape shape_temp;
