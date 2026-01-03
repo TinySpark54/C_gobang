@@ -84,13 +84,14 @@ extern "C" {
 
     // 原有的C函数声明
     bool is_within_board(char X, char Y);
+    bool checkWin(int x, int y, char player);
     Point *generate_choices();
     bool next_state(Point point,bool isMachine);
     void de_state(Point point);
     bool change(Point point,char dir,char player);
     int search(int depth, bool isMachine, int alpha_beta);
     int get_value();
-    void init_board();
+    void board_init();
     void stack_init();
     ChangeLog stack_pop();
     void shape_push(ChangeMode mode, Point position, Shape shape, char direction);
@@ -106,6 +107,7 @@ extern "C" {
     extern Point FinalChoice;
     extern ChangeLog change_stack[STACK_SIZE];
     extern ChangeLog *ptr_change_stack;
+    extern char firstPlayer;
 
 #ifdef __cplusplus
 }

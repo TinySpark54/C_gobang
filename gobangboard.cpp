@@ -12,7 +12,7 @@ GobangBoard::GobangBoard(QWidget *parent)
 {
     // 初始化游戏状态
     stack_init();
-    init_board();
+    board_init();
 
     // 创建界面组件
     btnNewGame = new QPushButton("新游戏");
@@ -206,7 +206,7 @@ void GobangBoard::drawPieces(QPainter &painter)
 
                 // 绘制棋子阴影（3D效果）
                 painter.setPen(Qt::NoPen);
-                if (Board[y][x] == COMPUTER)
+                if (Board[y][x] == firstPlayer)
                 {
                     // 电脑棋子（黑色）
                     QRadialGradient gradient(center, pieceRadius);
@@ -405,7 +405,7 @@ void GobangBoard::newGame()
     qDebug() << "新游戏";
 
     // 重置游戏状态
-    init_board();
+    board_init();
     stack_init();
     gameStarted = false;
     gameOverFlag = false;
@@ -424,6 +424,7 @@ void GobangBoard::computerFirst()
     newGame();
     gameStarted = true;
     computerTurn = true;
+    firstPlayer = COMPUTER;
     lblStatus->setText("游戏开始 - 电脑先手");
 
     // 电脑走第一步
@@ -436,6 +437,7 @@ void GobangBoard::playerFirst()
     newGame();
     gameStarted = true;
     computerTurn = false;
+    firstPlayer = HUMAN;
     lblStatus->setText("游戏开始 - 玩家先手");
 }
 
@@ -497,7 +499,8 @@ void GobangBoard::showAbout()
                        "• 支持热力图启发式搜索\n"
                        "• 美观的图形界面\n\n"
                        "作者：TinySpark\n"
-                       "版本：0.1");
+                       "版本：0.1.1\n"
+                       "项目地址：https://github.com/TinySpark54/C_gobang/");
 }
 
 void GobangBoard::resizeEvent(QResizeEvent *event)

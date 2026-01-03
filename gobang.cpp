@@ -10,7 +10,7 @@ int main()
     bool human_win = false;
 
     stack_init();
-    init_board();
+    board_init();
 
     printf("五子棋游戏开始！\n");
     printf("1：电脑先行，0：玩家先行：");

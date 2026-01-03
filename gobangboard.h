@@ -56,6 +56,7 @@ private:
     QWidget *controlWidget;
 
     // 游戏状态
+
     bool gameStarted;
     bool computerTurn;
     bool gameOverFlag;

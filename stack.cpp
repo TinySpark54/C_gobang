@@ -70,7 +70,7 @@ void shape_push(ChangeMode mode, Point position, Shape shape, char direction)
                           value_blocked[(total_pieces < 4) ? total_pieces : 3]) * add);
                 heat_push({broke_X, broke_Y}, value_blocked[total_pieces] * add);
                 score_push(((shape.length0 > 3) ? value_free[shape.length0 - 1] :
-                           value_blocked[(total_pieces < 4) ? total_pieces : 3]) * add * player);
+                           value_blocked[(total_pieces < 4) ? total_pieces - 1 : 3]) * add * player);
             }
         }
         else
@@ -81,7 +81,7 @@ void shape_push(ChangeMode mode, Point position, Shape shape, char direction)
                           value_blocked[(total_pieces < 4) ? total_pieces : 3]) * add);
                 heat_push({broke_X, broke_Y}, value_blocked[total_pieces] * add);
                 score_push(((shape.length0 > 2) ? value_free[shape.length0 - 1] :
-                           value_blocked[(total_pieces < 4) ? total_pieces : 3]) * add * player);
+                           value_blocked[(total_pieces < 4) ? total_pieces - 1 : 3]) * add * player);
             }
             else
             {
@@ -90,7 +90,7 @@ void shape_push(ChangeMode mode, Point position, Shape shape, char direction)
                 heat_push({front_X, front_Y}, ((total_pieces < 3) ? value_free[total_pieces] :
                           value_blocked[3]) * add);
                 heat_push({broke_X, broke_Y}, value_blocked[total_pieces] * add);
-                score_push(value_blocked[(total_pieces < 4) ? total_pieces : 3] * player * add);
+                score_push(value_blocked[(total_pieces < 4) ? total_pieces-1 : 3] * player * add);
             }
         }
     }
@@ -99,19 +99,19 @@ void shape_push(ChangeMode mode, Point position, Shape shape, char direction)
         if (shape.isblocked_begin)
         {
             heat_push({back_X, back_Y}, value_blocked[total_pieces] * add);
-            score_push(value_blocked[total_pieces] * add * player);
+            score_push(value_blocked[total_pieces-1] * add * player);
         }
         else
         {
             heat_push({back_X, back_Y}, value_free[total_pieces] * add);
             heat_push({front_X, front_Y}, value_free[total_pieces] * add);
-            score_push(value_free[total_pieces] * add * player);
+            score_push(value_free[total_pieces-1] * add * player);
         }
     }
     else if (!shape.isblocked_begin)
     {
         heat_push({front_X, front_Y}, value_blocked[total_pieces] * add);
-        score_push(value_blocked[total_pieces] * add * player);
+        score_push(value_blocked[total_pieces-1] * add * player);
     }
 }
 
