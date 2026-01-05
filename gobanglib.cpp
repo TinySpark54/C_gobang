@@ -80,7 +80,7 @@ void board_init()
     }
 }
 
-int search(int depth, bool isMachine, int alpha_beta)
+int search(int depth, bool isMachine, int alpha_beta)//搜索主函数
 {
     if (depth > 0)
     {
@@ -503,7 +503,7 @@ bool change(Point point, char dir, char player)
     return false; // 不在这里检查胜利
 }
 
-void de_state(Point point)
+void de_state(Point point)//回退状态
 {
     Board[point.Y][point.X] = EMPTY;
     bool loop = true;
@@ -540,7 +540,7 @@ void de_state(Point point)
     }
 }
 
-Point *generate_choices()
+Point *generate_choices()//启发选点
 {
     Point *choices = (Point *)malloc(sizeof(Point) * MAXBRANCHES);
     for (int i = 0; i < MAXBRANCHES; i++)

@@ -1,6 +1,6 @@
 #include "gobang.h"
 #include <cstdio>
-
+//命令行早期测试（已弃用）
 int main()
 {
     int X_human;
